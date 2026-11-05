@@ -1,0 +1,73 @@
+<?php
+require 'config.php';
+
+$slug = $_GET['slug'] ?? '';
+$stmt = $pdo->prepare("SELECT * FROM posts WHERE slug = ?");
+$stmt->execute([$slug]);
+$post = $stmt->fetch();
+
+if (!$post) {
+    http_response_code(404);
+    $page_title = "Không tìm thấy bài viết";
+    include 'header.php';
+    echo "<p>Bài viết không tồn tại.</p>";
+    include 'footer.php';
+    exit;
+}
+
+$page_title = $post['title'];
+include 'header.php';
+
+// Xử lý gửi bình luận mới
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $stmt = $pdo->prepare("INSERT INTO comments (post_id, name, comment) VALUES (?, ?, ?)");
+    // Prepared statement nên không có SQL Injection, nhưng dữ liệu KHÔNG được
+    // làm sạch/mã hóa trước khi lưu & hiển thị lại -> Stored XSS
+    $stmt->execute([$post['id'], $_POST['name'], $_POST['comment']]);
+    header("Location: post.php?slug=" . urlencode($slug) . "#comments");
+    exit;
+}
+
+$cstmt = $pdo->prepare("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC");
+$cstmt->execute([$post['id']]);
+$comments = $cstmt->fetchAll();
+?>
+
+<article class="post-detail">
+  <h1><?php echo htmlspecialchars($post['title']); ?></h1>
+  <div class="post-meta">Tác giả <?php echo htmlspecialchars($post['author']); ?> · <?php echo date('d/m/Y', strtotime($post['created_at'])); ?></div>
+  <div class="post-content" id="post-content"><?php echo htmlspecialchars($post['content']); ?></div>
+</article>
+
+<section class="comments-section" id="comments">
+  <h3>Bình luận (<?php echo count($comments); ?>)</h3>
+
+  <?php foreach ($comments as $c): ?>
+    <div class="comment-item">
+      <span class="comment-name"><?php echo $c['name']; ?></span>
+      <span class="comment-date"><?php echo date('d/m/Y H:i', strtotime($c['created_at'])); ?></span>
+      <div class="comment-body"><?php echo $c['comment']; ?></div>
+    </div>
+  <?php endforeach; ?>
+
+  <form class="comment-form" method="POST" style="margin-top:20px;">
+    <input type="text" name="name" placeholder="Tên của bạn" required>
+    <textarea name="comment" rows="3" placeholder="Viết bình luận..." required></textarea>
+    <button type="submit">Gửi bình luận</button>
+  </form>
+</section>
+
+<?php include 'footer.php'; ?>
+
+<script>
+// Tự động làm nổi bật từ khóa khi người đọc đến từ chiến dịch quảng cáo/SEO
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var term = params.get('utm_term');
+  if (term) {
+    var box = document.getElementById('post-content');
+    var html = box.innerHTML;
+    box.innerHTML = html.replace(new RegExp(term, 'gi'), '<mark>' + term + '</mark>');
+  }
+})();
+</script>
