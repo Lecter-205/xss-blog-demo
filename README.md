@@ -5,12 +5,14 @@ Trang blog trông hoàn toàn bình thường với người ngoài. Không có 
 ## Cài đặt
 
 ```bash
+git clone https://github.com/Lecter-205/xss-blog-demo.git xss-blog
 cd xss-blog
 chmod +x install_lamp.sh
 sudo bash install_lamp.sh
 ```
 
 Truy cập: `http://<IP-hoặc-domain>/blog/`
+## Nhớ cài SSL/TLS (https://)
 
 ## 3 lỗ hổng ẩn trong site (chi tiết + bản vá xem file `PATCH_NOTES.md`)
 
