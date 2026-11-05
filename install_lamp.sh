@@ -35,12 +35,23 @@ FLUSH PRIVILEGES;
 SQL
 mysql -u root blogs < "$(dirname "$0")/setup_db.sql"
 
-echo "==> [6/6] Triển khai mã nguồn..."
+echo "==> [6/6] Triển khai mã nguồn bằng Symbolic Link..."
+# Lấy đường dẫn tuyệt đối của thư mục chứa script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Xóa thư mục/link cũ nếu có
 rm -rf /var/www/html/blog
-cp -r "$(dirname "$0")/www" /var/www/html/blog
-chown -R www-data:www-data /var/www/html/blog
-chmod -R 755 /var/www/html/blog
-sed -i "s/__DB_PASSWORD__/${DB_PASS}/" /var/www/html/blog/config.php
+
+# Tạo Symbolic Link tự động trỏ về thư mục www của người clone
+ln -s "$SCRIPT_DIR/www" /var/www/html/blog
+
+# Phân quyền tự động cho user chạy sudo và Apache
+REAL_USER=${SUDO_USER:-$USER}
+chown -R $REAL_USER:www-data "$SCRIPT_DIR/www"
+chmod -R 775 "$SCRIPT_DIR/www"
+chmod o+rx "/home/$REAL_USER" "$SCRIPT_DIR"
+
+sed -i "s/__DB_PASSWORD__/${DB_PASS}/" "$SCRIPT_DIR/www/config.php"
 
 echo ""
 echo "============================================================"
