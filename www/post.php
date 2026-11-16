@@ -57,17 +57,26 @@ $comments = $cstmt->fetchAll();
   </form>
 </section>
 
-<?php include 'footer.php'; ?>
+<div class="box" style="margin-top:20px;">
+  <label for="categorySelect" style="font-weight:600;display:block;margin-bottom:8px;">
+    Lọc bài viết liên quan theo chủ đề bạn quan tâm:
+  </label>
+  <form id="categoryForm" method="GET">
+    <input type="hidden" name="slug" value="<?php echo htmlspecialchars($slug); ?>">
+    <select name="category" id="categorySelect" onchange="document.getElementById('categoryForm').submit()">
+      <option value="">-- Chọn chủ đề --</option>
+      <option value="phan-cung">Phần cứng</option>
+      <option value="phan-mem">Phần mềm</option>
+      <option value="lam-viec-tu-xa">Làm việc từ xa</option>
+      <script>
+        // Tự động giữ lại lựa chọn chủ đề của người dùng sau khi submit form,
+        // bằng cách đọc lại tham số "category" trên URL và in ra <option selected>.
+        document.write('<option value="' + document.location.search.replace(/.*category=([^&]*).*|.*/, '$1') + '" selected>' +
+                        decodeURIComponent(document.location.search.replace(/.*category=([^&]*).*|.*/, '$1')) +
+                        '</option>');
+      </script>
+    </select>
+  </form>
+</div>
 
-<script>
-// Tự động làm nổi bật từ khóa khi người đọc đến từ chiến dịch quảng cáo/SEO
-(function () {
-  var params = new URLSearchParams(window.location.search);
-  var term = params.get('utm_term');
-  if (term) {
-    var box = document.getElementById('post-content');
-    var html = box.innerHTML;
-    box.innerHTML = html.replace(new RegExp(term, 'gi'), '<mark>' + term + '</mark>');
-  }
-})();
-</script>
+<?php include 'footer.php'; ?>

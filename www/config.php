@@ -1,6 +1,6 @@
 <?php
-// LƯU Ý: cố ý tắt HttpOnly để document.cookie đọc được session cookie,
-// phục vụ demo chiếm phiên đăng nhập (session hijacking) qua XSS.
+// Copy file này thành config.php rồi điền mật khẩu DB thật của bạn.
+// config.php đã nằm trong .gitignore, sẽ không bị đẩy lên git.
 
 ini_set('session.cookie_httponly', 0);
 session_start();

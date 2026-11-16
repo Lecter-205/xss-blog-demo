@@ -1,0 +1,6 @@
+# Không commit file config chứa mật khẩu thật
+config.php
+
+# File log/rác thường gặp
+*.log
+.DS_Store
