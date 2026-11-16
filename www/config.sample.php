@@ -6,9 +6,9 @@ ini_set('session.cookie_httponly', 0);
 session_start();
 
 $DB_HOST = "localhost";
-$DB_NAME = "techvietblog";
-$DB_USER = "blogapp";
-$DB_PASS = "DIEN_MAT_KHAU_THAT_O_DAY";
+$DB_NAME = "blogs";
+$DB_USER = "userapp";
+$DB_PASS = "password";
 
 try {
     $pdo = new PDO("mysql:host=$DB_HOST;dbname=$DB_NAME;charset=utf8mb4", $DB_USER, $DB_PASS);
