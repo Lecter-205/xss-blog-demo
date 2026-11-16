@@ -52,48 +52,44 @@ http://<domain>/search.php?q=<img src=x onerror=alert(1)>
 
 ---
 
-## 3. DOM-based XSS — `post.php` (bộ lọc "Chủ đề liên quan")
+## 3. DOM-based XSS — `post.php` (tính năng highlight từ khóa)
 
-**Vị trí lỗi:** đoạn script bên trong thẻ `<select>` ở cuối trang `post.php`.
+**Vị trí lỗi:** đoạn script cuối trang `post.php`.
 
 ```javascript
 // DỄ BỊ KHAI THÁC (hiện tại trong site):
-document.write('<option value="' + document.location.search.replace(/.*category=([^&]*).*|.*/, '$1') + '" selected>' +
-                decodeURIComponent(document.location.search.replace(/.*category=([^&]*).*|.*/, '$1')) +
-                '</option>');
+var params = new URLSearchParams(window.location.search);
+var term = params.get('utm_term');
+if (term) {
+  var box = document.getElementById('post-content');
+  var html = box.innerHTML;
+  box.innerHTML = html.replace(new RegExp(term, 'gi'), '<mark>' + term + '</mark>');
+}
 ```
 
-**Source:** `document.location.search` (tham số `category` trên URL) — đọc nguyên văn, **không qua `decodeURIComponent` trước khi ghép vào thuộc tính `value`**.
-**Sink:** `document.write()` — ghi thẳng ra trang mà không mã hóa.
-
-### Vì sao payload `<script>`/`<img>` thông thường KHÔNG chạy ngay?
-
-Đoạn `document.write()` này nằm **bên trong thẻ `<select>...</select>`**. Theo đặc tả HTML, trình duyệt chỉ chấp nhận `<option>`/`<optgroup>` làm con hợp lệ của `<select>` — mọi thẻ khác (`<script>`, `<img>`...) bị **bỏ qua hoặc hiển thị dưới dạng text thô**, không được thực thi. Đây là lý do nhiều người mới học XSS thử `<img src=x onerror=alert(1)>` trực tiếp mà "không thấy gì xảy ra" — không phải vì không có lỗi, mà vì ngữ cảnh HTML hiện tại chặn nó.
-
-**Payload khai thác đúng cách — phải "thoát" khỏi `<select>` trước:**
+**Payload khai thác:**
 ```
-https://<domain>/post.php?slug=toi-uu-toc-do-may-tinh&category="></select><img src=1 onerror=alert(document.cookie)>
+http://<domain>/post.php?slug=toi-uu-toc-do-may-tinh&utm_term=<img src=x onerror=alert('DOM-XSS')>
 ```
-Giải thích từng phần:
-- `">` — đóng thuộc tính `value="..."` và thẻ `<option>` đang mở dở.
-- `</select>` — đóng hẳn ngữ cảnh `<select>`, đưa trình duyệt về chế độ phân tích HTML bình thường.
-- `<img src=1 onerror=alert(document.cookie)>` — giờ nằm ngoài `<select>`, được trình duyệt thực thi bình thường như bất kỳ thẻ HTML nào khác.
-
-Không cần URL-encode các ký tự `<`, `>`, `"` khi gõ trực tiếp vào thanh địa chỉ — hầu hết trình duyệt vẫn chấp nhận và gửi nguyên văn, đúng như cách `document.location.search` nhận lại.
+Lỗi này **không hề đi qua server** — dữ liệu được JavaScript đọc và ghi thẳng vào DOM phía trình duyệt, nên log server/WAF truyền thống rất dễ bỏ sót.
 
 **Bản vá:**
 ```javascript
-// Không dùng document.write() với dữ liệu người dùng. Thay vào đó, parse giá trị
-// và dùng DOM API an toàn (createElement + textContent) để tạo <option>:
 var params = new URLSearchParams(window.location.search);
-var cat = params.get('category') || '';
-var opt = document.createElement('option');
-opt.value = cat;        // thuộc tính value qua DOM property - trình duyệt tự escape
-opt.textContent = cat;  // textContent không bao giờ được diễn giải thành HTML
-opt.selected = true;
-document.getElementById('categorySelect').appendChild(opt);
+var term = params.get('utm_term');
+if (term) {
+  var box = document.getElementById('post-content');
+  // Dùng textContent để lấy text thuần, tránh regex chèn thẳng vào innerHTML
+  var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape ký tự đặc biệt regex
+  var safeTerm = document.createElement('div');
+  safeTerm.textContent = term; // ép về text an toàn trước khi dùng
+  box.innerHTML = box.innerHTML.replace(
+    new RegExp(escaped, 'gi'),
+    '<mark>' + safeTerm.innerHTML + '</mark>'
+  );
+}
 ```
-*(Nguyên tắc chung: tránh hoàn toàn `document.write()`, `innerHTML`, `outerHTML` khi xử lý dữ liệu không tin cậy — luôn ưu tiên các API tạo DOM node trực tiếp như `createElement`/`textContent`, vì chúng không bao giờ diễn giải chuỗi thành thẻ HTML.)*
+*(An toàn hơn nữa: tránh thao tác innerHTML hoàn toàn — dùng `Range`/`Text node` API hoặc thư viện DOMPurify để sanitize trước khi chèn.)*
 
 ---
 

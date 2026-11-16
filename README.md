@@ -5,18 +5,20 @@ Trang blog trông hoàn toàn bình thường với người ngoài. Không có 
 ## Cài đặt
 
 ```bash
+git clone https://github.com/Lecter-205/xss-blog-demo.git xss-blog
 cd xss-blog
 chmod +x install_lamp.sh
 sudo bash install_lamp.sh
 ```
 
 Truy cập: `http://<IP-hoặc-domain>/blog/`
+## Nhớ cài SSL/TLS (https://)
 
 ## 3 lỗ hổng ẩn trong site (chi tiết + bản vá xem file `PATCH_NOTES.md`)
 
 1. **Reflected XSS** — ô tìm kiếm (`search.php?q=...`)
 2. **Stored XSS** — form bình luận dưới mỗi bài viết (`post.php`)
-3. **DOM-based XSS** — bộ lọc "Chủ đề liên quan" dưới mỗi bài viết, dùng `document.write()` ghi tham số `?category=...` vào bên trong thẻ `<select>` (dạng lab kinh điển của PortSwigger: "DOM XSS in document.write sink using source location.search inside a select element")
+3. **DOM-based XSS** — tính năng highlight từ khóa khi vào bài viết kèm `?utm_term=...`
 
 ## Hệ thống đăng nhập (để demo chiếm quyền phiên qua cookie)
 
