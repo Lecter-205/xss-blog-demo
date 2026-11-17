@@ -18,7 +18,7 @@ Truy cập: `http://<IP-hoặc-domain>/blog/`
 
 1. **Reflected XSS** — ô tìm kiếm (`search.php?q=...`)
 2. **Stored XSS** — form bình luận dưới mỗi bài viết (`post.php`)
-3. **DOM-based XSS** — tính năng highlight từ khóa khi vào bài viết kèm `?utm_term=...`
+3. **DOM-based XSS** — bộ lọc bài viết theo lĩnh vực ở trang chủ (`index.php?category=...`)
 
 ## Hệ thống đăng nhập (để demo chiếm quyền phiên qua cookie)
 

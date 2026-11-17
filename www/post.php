@@ -58,16 +58,3 @@ $comments = $cstmt->fetchAll();
 </section>
 
 <?php include 'footer.php'; ?>
-
-<script>
-// Tự động làm nổi bật từ khóa khi người đọc đến từ chiến dịch quảng cáo/SEO
-(function () {
-  var params = new URLSearchParams(window.location.search);
-  var term = params.get('utm_term');
-  if (term) {
-    var box = document.getElementById('post-content');
-    var html = box.innerHTML;
-    box.innerHTML = html.replace(new RegExp(term, 'gi'), '<mark>' + term + '</mark>');
-  }
-})();
-</script>

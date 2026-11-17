@@ -52,44 +52,58 @@ http://<domain>/search.php?q=<img src=x onerror=alert(1)>
 
 ---
 
-## 3. DOM-based XSS — `post.php` (tính năng highlight từ khóa)
+## 3. DOM-based XSS — `index.php` (bộ lọc bài viết theo lĩnh vực)
 
-**Vị trí lỗi:** đoạn script cuối trang `post.php`.
+**Vị trí lỗi:** đoạn script cuối trang `index.php`, phần ghi nhãn "lĩnh vực đang lọc" từ URL vào `innerHTML`. Giá trị này **không được PHP đọc lại hay in ra**, nên toàn bộ luồng dữ liệu nằm hoàn toàn ở phía trình duyệt.
 
 ```javascript
 // DỄ BỊ KHAI THÁC (hiện tại trong site):
 var params = new URLSearchParams(window.location.search);
-var term = params.get('utm_term');
-if (term) {
-  var box = document.getElementById('post-content');
-  var html = box.innerHTML;
-  box.innerHTML = html.replace(new RegExp(term, 'gi'), '<mark>' + term + '</mark>');
+var category = params.get('category');
+if (category) {
+  var status = document.getElementById('filter-status');
+  status.innerHTML = 'Đang lọc theo lĩnh vực: <strong>' + category + '</strong>'; // <-- sink
+  ...
 }
 ```
 
+**Cách dùng bình thường:** chọn một lĩnh vực trong thẻ `<select>` (các `<option>` được sinh từ cột `category` của bảng `posts`) nằm ngang với tiêu đề "Bài viết mới nhất" → URL trở thành `index.php?category=kinh-te`, JavaScript sẽ ẩn các bài có `data-category` không khớp. Việc gán `select.value = category` chỉ là thuộc tính DOM (an toàn); điểm nguy hiểm vẫn là dòng ghi `innerHTML` ở trên.
+
 **Payload khai thác:**
 ```
-http://<domain>/post.php?slug=toi-uu-toc-do-may-tinh&utm_term=<img src=x onerror=alert('DOM-XSS')>
+http://<domain>/index.php?category=<img src=x onerror=alert('DOM-XSS')>
 ```
-Lỗi này **không hề đi qua server** — dữ liệu được JavaScript đọc và ghi thẳng vào DOM phía trình duyệt, nên log server/WAF truyền thống rất dễ bỏ sót.
+Lỗi này **không hề đi qua server** — giá trị từ `window.location.search` được JavaScript đọc và ghi thẳng vào DOM, nên log server/WAF truyền thống rất dễ bỏ sót. Bộ lọc vẫn hoạt động như một tính năng thật: người dùng thấy nhãn "Đang lọc theo lĩnh vực: ..." và danh sách bài được thu hẹp, trong khi payload chèn thêm thẻ `<img>` thực thi ngay trên trình duyệt.
 
 **Bản vá:**
 ```javascript
 var params = new URLSearchParams(window.location.search);
-var term = params.get('utm_term');
-if (term) {
-  var box = document.getElementById('post-content');
-  // Dùng textContent để lấy text thuần, tránh regex chèn thẳng vào innerHTML
-  var escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape ký tự đặc biệt regex
-  var safeTerm = document.createElement('div');
-  safeTerm.textContent = term; // ép về text an toàn trước khi dùng
-  box.innerHTML = box.innerHTML.replace(
-    new RegExp(escaped, 'gi'),
-    '<mark>' + safeTerm.innerHTML + '</mark>'
-  );
+var category = params.get('category') || '';
+
+// 1) Whitelist: chỉ chấp nhận các lĩnh vực có thật, giá trị lạ bị loại bỏ
+var allowed = ['cong-nghe', 'kinh-te', 'tai-chinh', 'y-te',
+               'giao-duc', 'the-thao', 'moi-truong', 'phap-luat'];
+if (allowed.indexOf(category) === -1) category = '';
+
+// 2) Ghi nhãn bằng text node, KHÔNG dùng innerHTML
+var status = document.getElementById('filter-status');
+status.textContent = '';
+status.appendChild(document.createTextNode(
+  category ? 'Đang lọc theo lĩnh vực: ' : 'Hiển thị tất cả bài viết'
+));
+if (category) {
+  var label = document.createElement('strong');
+  label.textContent = category; // an toàn: chỉ là text, không phải markup
+  status.appendChild(label);
+}
+
+// 3) Lọc bằng thuộc tính ẩn, không chèn HTML
+var cards = document.querySelectorAll('.post-card[data-category]');
+for (var i = 0; i < cards.length; i++) {
+  cards[i].hidden = category !== '' && cards[i].getAttribute('data-category') !== category;
 }
 ```
-*(An toàn hơn nữa: tránh thao tác innerHTML hoàn toàn — dùng `Range`/`Text node` API hoặc thư viện DOMPurify để sanitize trước khi chèn.)*
+*(An toàn hơn nữa: chuyển việc lọc sang server với prepared statement `WHERE category = ?`, và thêm header `Content-Security-Policy: script-src 'self'` để giảm tác động nếu còn sink khác lọt qua.)*
 
 ---
 
