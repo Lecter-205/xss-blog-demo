@@ -12,7 +12,7 @@ $results = $stmt->fetchAll();
 ?>
 
 <?php
-// echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . $q . '" (' . count($results) . ' bài viết)</h2>';
+//echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . $q . '" (' . count($results) . ' bài viết)</h2>';
 echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . htmlspecialchars($q, ENT_QUOTES, 'UTF-8') . '" (' . count($results) . ' bài viết)</h2>';
 ?>
 

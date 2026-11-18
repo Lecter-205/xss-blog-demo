@@ -1,9 +1,9 @@
 <?php
-// LƯU Ý: cố ý tắt HttpOnly để document.cookie đọc được session cookie,
-// phục vụ demo chiếm phiên đăng nhập (session hijacking) qua XSS.
 
-ini_set('session.cookie_httponly', 0);
 session_start();
+
+header("Content-Security-Policy: default-src 'self'; script-src 'self';");
+header("X-Content-Type-Options: nosniff");
 
 $DB_HOST = "localhost";
 $DB_NAME = "blogs";

