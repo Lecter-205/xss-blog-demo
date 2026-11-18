@@ -21,8 +21,6 @@ include 'header.php';
 // Xử lý gửi bình luận mới
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("INSERT INTO comments (post_id, name, comment) VALUES (?, ?, ?)");
-    // Prepared statement nên không có SQL Injection, nhưng dữ liệu KHÔNG được
-    // làm sạch/mã hóa trước khi lưu & hiển thị lại -> Stored XSS
     $stmt->execute([$post['id'], $_POST['name'], $_POST['comment']]);
     header("Location: post.php?slug=" . urlencode($slug) . "#comments");
     exit;
@@ -44,9 +42,13 @@ $comments = $cstmt->fetchAll();
 
   <?php foreach ($comments as $c): ?>
     <div class="comment-item">
-      <span class="comment-name"><?php echo $c['name']; ?></span>
-      <span class="comment-date"><?php echo date('d/m/Y H:i', strtotime($c['created_at'])); ?></span>
-      <div class="comment-body"><?php echo $c['comment']; ?></div>
+      <?php
+      //echo '<span class="comment-name">' . $c['name'] . '</span>';
+      echo '<span class="comment-name">' . htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') . '</span>';
+      echo '<span class="comment-date">' . date('d/m/Y H:i', strtotime($c['created_at'])) . '</span>';
+      //echo '<div class="comment-body">' . $c['comment'] . '</div>';
+      echo '<div class="comment-body">' . htmlspecialchars($c['comment'], ENT_QUOTES, 'UTF-8') . '</div>';
+      ?>
     </div>
   <?php endforeach; ?>
 

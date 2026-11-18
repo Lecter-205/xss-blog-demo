@@ -9,8 +9,7 @@ Tài liệu này **không nằm trong mã nguồn trang web** (giữ trang blog 
 **Vị trí lỗi:** dòng in tiêu đề kết quả tìm kiếm.
 
 ```php
-// DỄ BỊ KHAI THÁC (hiện tại trong site):
-<h2>Kết quả tìm kiếm cho "<?php echo $q; ?>" ...</h2>
+echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . $q . '" (' . count($results) . ' bài viết)</h2>';
 ```
 
 **Payload khai thác:**
@@ -21,7 +20,10 @@ http://<domain>/search.php?q=<img src=x onerror=alert(1)>
 
 **Bản vá:**
 ```php
-<h2>Kết quả tìm kiếm cho "<?php echo htmlspecialchars($q, ENT_QUOTES, 'UTF-8'); ?>" ...</h2>
+<?php
+// echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . $q . '" (' . count($results) . ' bài viết)</h2>';
+echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . htmlspecialchars($q, ENT_QUOTES, 'UTF-8') . '" (' . count($results) . ' bài viết)</h2>';
+?>
 ```
 
 ---
@@ -31,9 +33,15 @@ http://<domain>/search.php?q=<img src=x onerror=alert(1)>
 **Vị trí lỗi:** vòng lặp hiển thị danh sách bình luận.
 
 ```php
-// DỄ BỊ KHAI THÁC (hiện tại trong site):
-<span class="comment-name"><?php echo $c['name']; ?></span>
-<div class="comment-body"><?php echo $c['comment']; ?></div>
+  <?php foreach ($comments as $c): ?>
+    <div class="comment-item">
+      <?php
+      echo '<span class="comment-name">' . $c['name'] . '</span>';
+      echo '<span class="comment-date">' . date('d/m/Y H:i', strtotime($c['created_at'])) . '</span>';
+      echo '<div class="comment-body">' . $c['comment'] . '</div>';
+      ?>
+    </div>
+  <?php endforeach; ?>
 ```
 
 **Payload khai thác:** nhập vào ô "Viết bình luận..."
@@ -44,8 +52,17 @@ http://<domain>/search.php?q=<img src=x onerror=alert(1)>
 
 **Bản vá:**
 ```php
-<span class="comment-name"><?php echo htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8'); ?></span>
-<div class="comment-body"><?php echo htmlspecialchars($c['comment'], ENT_QUOTES, 'UTF-8'); ?></div>
+<?php foreach ($comments as $c): ?>
+    <div class="comment-item">
+      <?php
+      //echo '<span class="comment-name">' . $c['name'] . '</span>';
+      echo '<span class="comment-name">' . htmlspecialchars($c['name'], ENT_QUOTES, 'UTF-8') . '</span>';
+      echo '<span class="comment-date">' . date('d/m/Y H:i', strtotime($c['created_at'])) . '</span>';
+      //echo '<div class="comment-body">' . $c['comment'] . '</div>';
+      echo '<div class="comment-body">' . htmlspecialchars($c['comment'], ENT_QUOTES, 'UTF-8') . '</div>';
+      ?>
+    </div>
+  <?php endforeach; ?>
 ```
 
 *(Tuỳ chọn nâng cao: nếu muốn cho phép định dạng cơ bản như in đậm/in nghiêng trong bình luận, dùng thư viện lọc HTML theo allow-list như HTML Purifier thay vì chỉ encode toàn bộ.)*
@@ -77,31 +94,46 @@ Lỗi này **không hề đi qua server** — giá trị từ `window.location.s
 
 **Bản vá:**
 ```javascript
-var params = new URLSearchParams(window.location.search);
-var category = params.get('category') || '';
+  var params = new URLSearchParams(window.location.search);
+  var category = params.get('category') || '';
+  var select = document.getElementById('category-filter');
+  var status = document.getElementById('filter-status');
 
-// 1) Whitelist: chỉ chấp nhận các lĩnh vực có thật, giá trị lạ bị loại bỏ
-var allowed = ['cong-nghe', 'kinh-te', 'tai-chinh', 'y-te',
-               'giao-duc', 'the-thao', 'moi-truong', 'phap-luat'];
-if (allowed.indexOf(category) === -1) category = '';
+  // 1) Whitelist: chỉ nhận các lĩnh vực có thật trong <select>
+  var allowed = [];
+  if (select) {
+    for (var k = 0; k < select.options.length; k++) {
+      if (select.options[k].value) allowed.push(select.options[k].value);
+    }
+  }
+  if (allowed.indexOf(category) === -1) category = '';
 
-// 2) Ghi nhãn bằng text node, KHÔNG dùng innerHTML
-var status = document.getElementById('filter-status');
-status.textContent = '';
-status.appendChild(document.createTextNode(
-  category ? 'Đang lọc theo lĩnh vực: ' : 'Hiển thị tất cả bài viết'
-));
-if (category) {
+  if (select) {
+    select.value = category;
+    select.addEventListener('change', function () {
+      window.location.href = this.value
+        ? 'index.php?category=' + encodeURIComponent(this.value)
+        : 'index.php';
+    });
+  }
+
+  // 2) Ghi nhãn bằng textContent / text node, KHÔNG dùng innerHTML
+  status.textContent = '';
+  if (!category) {
+    status.textContent = 'Hiển thị tất cả bài viết';
+    return;
+  }
+  status.appendChild(document.createTextNode('Đang lọc theo lĩnh vực: '));
   var label = document.createElement('strong');
-  label.textContent = category; // an toàn: chỉ là text, không phải markup
+  var opt = select.querySelector('option[value="' + category + '"]');
+  label.textContent = opt ? opt.textContent : category;
   status.appendChild(label);
-}
 
-// 3) Lọc bằng thuộc tính ẩn, không chèn HTML
-var cards = document.querySelectorAll('.post-card[data-category]');
-for (var i = 0; i < cards.length; i++) {
-  cards[i].hidden = category !== '' && cards[i].getAttribute('data-category') !== category;
-}
+  // 3) Lọc bằng thuộc tính hidden
+  var cards = document.querySelectorAll('.post-card[data-category]');
+  for (var i = 0; i < cards.length; i++) {
+    cards[i].hidden = cards[i].getAttribute('data-category') !== category;
+  }
 ```
 *(An toàn hơn nữa: chuyển việc lọc sang server với prepared statement `WHERE category = ?`, và thêm header `Content-Security-Policy: script-src 'self'` để giảm tác động nếu còn sink khác lọt qua.)*
 

@@ -2,7 +2,6 @@
 require 'config.php';
 $page_title = "Trang chủ";
 
-// Nhãn hiển thị cho từng lĩnh vực bài viết
 $categoryLabels = [
   'cong-nghe'  => 'Công nghệ',
   'kinh-te'    => 'Kinh tế',
@@ -14,7 +13,6 @@ $categoryLabels = [
   'phap-luat'  => 'Pháp luật',
 ];
 
-// Chỉ tạo chip lọc cho những lĩnh vực thực sự có bài viết
 $availableCategories = $pdo->query("SELECT DISTINCT category FROM posts")->fetchAll(PDO::FETCH_COLUMN);
 
 include 'header.php';
@@ -58,8 +56,8 @@ foreach ($posts as $post):
 <?php endforeach; ?>
 
 <script>
-// Lọc bài viết theo lĩnh vực ngay trên trình duyệt (dùng để demo DOM-based XSS)
 (function () {
+
   var params = new URLSearchParams(window.location.search);
   var category = params.get('category');
   var select = document.getElementById('category-filter');
@@ -77,13 +75,51 @@ foreach ($posts as $post):
 
   if (!category) return;
 
-  // ⚠️ Giá trị đọc từ URL được ghi thẳng vào innerHTML -> DOM-based XSS
+  // Giá trị đọc từ URL được ghi thẳng vào innerHTML -> DOM-based XSS
   status.innerHTML = 'Đang lọc theo lĩnh vực: <strong>' + category + '</strong>';
 
   var cards = document.querySelectorAll('.post-card[data-category]');
   for (var i = 0; i < cards.length; i++) {
     cards[i].hidden = cards[i].getAttribute('data-category') !== category;
   }
+
+
+  // // 1) Whitelist: chỉ nhận các lĩnh vực có thật trong <select>
+  // var allowed = [];
+  // if (select) {
+  //   for (var k = 0; k < select.options.length; k++) {
+  //     if (select.options[k].value) allowed.push(select.options[k].value);
+  //   }
+  // }
+  // if (allowed.indexOf(category) === -1) category = '';
+
+  // if (select) {
+  //   select.value = category;
+  //   select.addEventListener('change', function () {
+  //     window.location.href = this.value
+  //       ? 'index.php?category=' + encodeURIComponent(this.value)
+  //       : 'index.php';
+  //   });
+  // }
+
+  // // 2) Ghi nhãn bằng textContent / text node, KHÔNG dùng innerHTML
+  // status.textContent = '';
+  // if (!category) {
+  //   status.textContent = 'Hiển thị tất cả bài viết';
+  //   return;
+  // }
+  // status.appendChild(document.createTextNode('Đang lọc theo lĩnh vực: '));
+  // var label = document.createElement('strong');
+  // var opt = select.querySelector('option[value="' + category + '"]');
+  // label.textContent = opt ? opt.textContent : category;
+  // status.appendChild(label);
+
+  // // 3) Lọc bằng thuộc tính hidden
+  // var cards = document.querySelectorAll('.post-card[data-category]');
+  // for (var i = 0; i < cards.length; i++) {
+  //   cards[i].hidden = cards[i].getAttribute('data-category') !== category;
+  // }
+
 })();
 </script>
 

@@ -5,15 +5,16 @@ include 'header.php';
 
 $q = $_GET['q'] ?? '';
 
-// Truy vấn an toàn (prepared statement) - không có SQL Injection
 $stmt = $pdo->prepare("SELECT * FROM posts WHERE title LIKE ? OR content LIKE ?");
 $like = "%$q%";
 $stmt->execute([$like, $like]);
 $results = $stmt->fetchAll();
 ?>
 
-<?php // Lưu ý nội bộ: $q được in trực tiếp bên dưới, không qua htmlspecialchars() ?>
-<h2 class="search-results-heading">Kết quả tìm kiếm cho "<?php echo $q; ?>" (<?php echo count($results); ?> bài viết)</h2>
+<?php
+// echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . $q . '" (' . count($results) . ' bài viết)</h2>';
+echo '<h2 class="search-results-heading">Kết quả tìm kiếm cho "' . htmlspecialchars($q, ENT_QUOTES, 'UTF-8') . '" (' . count($results) . ' bài viết)</h2>';
+?>
 
 <?php if (empty($results)): ?>
   <p>Không tìm thấy bài viết nào phù hợp. Hãy thử từ khóa khác.</p>
