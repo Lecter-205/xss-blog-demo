@@ -29,15 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 include 'header.php';
 ?>
-<div class="post-detail" style="max-width:420px;margin:0 auto;">
+<!-- <div class="post-detail" style="max-width:420px;margin:0 auto;"> -->
+<div class="post-detail card-narrow">
   <h1>Đăng ký tài khoản</h1>
-  <?php if ($error): ?><p style="color:#dc2626;"><?php echo htmlspecialchars($error); ?></p><?php endif; ?>
+  <?php if ($error): ?><p class="error-text"><?php echo htmlspecialchars($error); ?></p><?php endif; ?>
   <form method="POST" class="comment-form">
     <input type="text" name="username" placeholder="Tên đăng nhập" required>
     <input type="email" name="email" placeholder="Email" required>
     <input type="password" name="password" placeholder="Mật khẩu" required>
     <button type="submit">Đăng ký</button>
   </form>
-  <p style="margin-top:14px;font-size:14px;">Đã có tài khoản? <a href="login.php">Đăng nhập</a></p>
+  <p class="form-note">Đã có tài khoản? <a href="login.php">Đăng nhập</a></p>
 </div>
 <?php include 'footer.php'; ?>

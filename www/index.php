@@ -24,7 +24,8 @@ include 'header.php';
 </div>
 
 <div class="latest-heading">
-  <h2 id="about" style="margin-bottom:0;">Bài viết mới nhất</h2>
+  <!-- <h2 id="about" style="margin-bottom:0;">Bài viết mới nhất</h2> -->
+  <h2 id="about" class="mb-0">Bài viết mới nhất</h2>
   <div class="filter-bar" aria-label="Lọc bài viết theo lĩnh vực">
     <label for="category-filter">Lĩnh vực:</label>
     <select class="filter-select" id="category-filter" name="category">

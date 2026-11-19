@@ -13,11 +13,12 @@ $user = $stmt->fetch();
 
 include 'header.php';
 ?>
-<div class="post-detail" style="max-width:500px;margin:0 auto;">
+<!-- <div class="post-detail" style="max-width:500px;margin:0 auto;"> -->
+<div class="post-detail card-medium">
   <h1>Hồ sơ cá nhân</h1>
   <p><b>Tên đăng nhập:</b> <?php echo htmlspecialchars($user['username']); ?></p>
   <p><b>Email:</b> <?php echo htmlspecialchars($user['email']); ?></p>
   <p><b>Thành viên từ:</b> <?php echo date('d/m/Y', strtotime($user['created_at'])); ?></p>
-  <p style="margin-top:20px;"><a href="logout.php">Đăng xuất</a></p>
+  <p class="mt-20"><a href="logout.php">Đăng xuất</a></p>
 </div>
 <?php include 'footer.php'; ?>

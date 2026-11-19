@@ -52,7 +52,8 @@ $comments = $cstmt->fetchAll();
     </div>
   <?php endforeach; ?>
 
-  <form class="comment-form" method="POST" style="margin-top:20px;">
+  <!-- <form class="comment-form" method="POST" style="margin-top:20px;"> -->
+  <form class="comment-form mt-20" method="POST">
     <input type="text" name="name" placeholder="Tên của bạn" required>
     <textarea name="comment" rows="3" placeholder="Viết bình luận..." required></textarea>
     <button type="submit">Gửi bình luận</button>

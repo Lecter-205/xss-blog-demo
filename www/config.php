@@ -2,8 +2,8 @@
 
 session_start();
 
-header("Content-Security-Policy: default-src 'self'; script-src 'self';");
-header("X-Content-Type-Options: nosniff");
+// header("Content-Security-Policy: default-src 'self'; script-src 'self';");
+// header("X-Content-Type-Options: nosniff");
 
 $DB_HOST = "localhost";
 $DB_NAME = "blogs";

@@ -24,14 +24,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 include 'header.php';
 ?>
-<div class="post-detail" style="max-width:420px;margin:0 auto;">
+<!-- <div class="post-detail" style="max-width:420px;margin:0 auto;"> -->
+<div class="post-detail card-narrow">
   <h1>Đăng nhập</h1>
-  <?php if ($error): ?><p style="color:#dc2626;"><?php echo htmlspecialchars($error); ?></p><?php endif; ?>
+  <?php if ($error): ?><p class="error-text"><?php echo htmlspecialchars($error); ?></p><?php endif; ?>
   <form method="POST" class="comment-form">
     <input type="text" name="username" placeholder="Tên đăng nhập" required>
     <input type="password" name="password" placeholder="Mật khẩu" required>
     <button type="submit">Đăng nhập</button>
   </form>
-  <p style="margin-top:14px;font-size:14px;">Chưa có tài khoản? <a href="register.php">Đăng ký</a></p>
+  <p class="form-note">Chưa có tài khoản? <a href="register.php">Đăng ký</a></p>
 </div>
 <?php include 'footer.php'; ?>
